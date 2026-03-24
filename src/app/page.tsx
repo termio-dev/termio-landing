@@ -1,4 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 import {
+  Apple,
+  AppWindow,
   Terminal,
   LayoutGrid,
   Code,
@@ -6,8 +12,8 @@ import {
   SquareTerminal,
   GripVertical,
   Upload,
-  Monitor,
   Download,
+  Monitor,
   ShieldCheck,
   GitBranch,
   HardDrive,
@@ -21,11 +27,71 @@ import {
   Minus,
   Quote,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+type DownloadPlatform = "mac" | "windows" | "linux";
+
+const downloadLinks = {
+  mac: "https://github.com/termio-dev/termio/releases/latest/download/Termio-macos-universal.dmg",
+  windows:
+    "https://github.com/termio-dev/termio/releases/latest/download/Termio-windows-x64-setup.exe",
+  linux:
+    "https://github.com/termio-dev/termio/releases/latest/download/Termio-linux-x86_64.AppImage",
+};
+
+const downloads = [
+  {
+    platform: "mac" as DownloadPlatform,
+    label: "Download for Mac",
+    shortLabel: "macOS",
+    href: downloadLinks.mac,
+    icon: Apple,
+  },
+  {
+    platform: "windows" as DownloadPlatform,
+    label: "Download for Windows",
+    shortLabel: "Windows",
+    href: downloadLinks.windows,
+    icon: AppWindow,
+  },
+  {
+    platform: "linux" as DownloadPlatform,
+    label: "Download for Linux",
+    shortLabel: "Linux",
+    href: downloadLinks.linux,
+    icon: Terminal,
+  },
+];
+
+function detectPlatform(): DownloadPlatform {
+  if (typeof navigator === "undefined") {
+    return "mac";
+  }
+
+  const platform = navigator.platform.toLowerCase();
+  const userAgent = navigator.userAgent.toLowerCase();
+
+  if (platform.includes("win") || userAgent.includes("windows")) {
+    return "windows";
+  }
+
+  if (platform.includes("linux") || userAgent.includes("linux")) {
+    return "linux";
+  }
+
+  return "mac";
+}
+
+function getOrderedDownloads(platform: DownloadPlatform) {
+  const preferred = downloads.find((item) => item.platform === platform);
+  const fallback = downloads.filter((item) => item.platform !== platform);
+
+  return preferred ? [preferred, ...fallback] : downloads;
+}
 
 const features = [
   {
@@ -80,14 +146,14 @@ function AppScreenshot() {
           Termio
         </div>
       </div>
-        {/* Screenshot placeholder — replace src with your actual screenshot */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`${basePath}/app_screenshot.png`}
-          alt="Termio app screenshot"
-          className="w-full block"
-          style={{ minHeight: 400, objectFit: "cover", background: "#111111" }}
-        />
+      {/* Screenshot placeholder — replace src with your actual screenshot */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`${basePath}/app_screenshot.png`}
+        alt="Termio app screenshot"
+        className="w-full block"
+        style={{ minHeight: 400, objectFit: "cover", background: "#111111" }}
+      />
     </div>
   );
 }
@@ -113,6 +179,19 @@ function ComparisonCell({
 }
 
 export default function Home() {
+  const [preferredPlatform, setPreferredPlatform] =
+    useState<DownloadPlatform>("mac");
+  const orderedDownloads = getOrderedDownloads(preferredPlatform);
+  const primaryDownload = orderedDownloads[0];
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setPreferredPlatform(detectPlatform());
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Nav */}
@@ -122,10 +201,13 @@ export default function Home() {
             <Terminal className="w-5 h-5 text-amber" />
             <span className="font-semibold tracking-tight">Termio</span>
           </div>
-          <Button size="sm">
+          <a
+            href={primaryDownload.href}
+            className={cn(buttonVariants({ size: "sm" }))}
+          >
             <Download className="w-4 h-4" />
-            Download
-          </Button>
+            {primaryDownload.label}
+          </a>
         </div>
       </nav>
 
@@ -141,27 +223,33 @@ export default function Home() {
               macOS · Linux · Windows
             </Badge>
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-[1.08] mb-5">
-              Your terminal,{" "}
-              <span className="text-amber">organized.</span>
+              Your terminal, <span className="text-amber">organized.</span>
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
               A desktop terminal and SSH manager with organized workspaces,
-              built-in AI copilot, and git-based collaboration. Fully
-              local — your data never leaves your machine.
+              built-in AI copilot, and git-based collaboration. Fully local —
+              your data never leaves your machine.
             </p>
             <div className="flex flex-wrap gap-3 mt-8">
-              <Button size="lg">
-                <Download className="w-4 h-4" />
-                Download for Mac
-              </Button>
-              <Button size="lg" variant="secondary" disabled>
-                <Download className="w-4 h-4" />
-                Windows (soon)
-              </Button>
-              <Button size="lg" variant="secondary" disabled>
-                <Download className="w-4 h-4" />
-                Linux (soon)
-              </Button>
+              {orderedDownloads.map((item, index) => {
+                const Icon = item.icon;
+
+                return (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    className={cn(
+                      buttonVariants({
+                        size: "lg",
+                        variant: index === 0 ? "default" : "secondary",
+                      }),
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {index === 0 ? item.label : item.shortLabel}
+                  </a>
+                );
+              })}
             </div>
           </div>
 
@@ -219,8 +307,9 @@ export default function Home() {
                 <h3 className="font-semibold">Git-Based Collaboration</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed mb-5">
-                Workspaces are plain text files. Share them through Git, any VCS,
-                or simple file transfer — no proprietary sync service needed.
+                Workspaces are plain text files. Share them through Git, any
+                VCS, or simple file transfer — no proprietary sync service
+                needed.
               </p>
               <ul className="space-y-3">
                 <li className="flex items-start gap-2.5 text-sm">
@@ -375,9 +464,7 @@ export default function Home() {
                     key={row.feature}
                     className={`border-b border-border ${i % 2 === 0 ? "bg-card/50" : ""}`}
                   >
-                    <td className="py-3 px-4 text-foreground">
-                      {row.feature}
-                    </td>
+                    <td className="py-3 px-4 text-foreground">{row.feature}</td>
                     <td className="py-3 px-4 text-center">
                       <ComparisonCell value={row.termio} highlight />
                     </td>
@@ -428,7 +515,7 @@ export default function Home() {
               },
               {
                 q: "What platforms are supported?",
-                a: "macOS is fully supported today. Windows and Linux builds are coming soon.",
+                a: "Termio is available on macOS, Windows, and Linux.",
               },
               {
                 q: "How is Termio different from Termius?",
@@ -519,18 +606,25 @@ export default function Home() {
             Download for your platform and get started in seconds.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Button size="lg">
-              <Download className="w-4 h-4" />
-              Download for Mac
-            </Button>
-            <Button size="lg" variant="secondary" disabled>
-              <Download className="w-4 h-4" />
-              Windows (soon)
-            </Button>
-            <Button size="lg" variant="secondary" disabled>
-              <Download className="w-4 h-4" />
-              Linux (soon)
-            </Button>
+            {orderedDownloads.map((item, index) => {
+              const Icon = item.icon;
+
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className={cn(
+                    buttonVariants({
+                      size: "lg",
+                      variant: index === 0 ? "default" : "secondary",
+                    }),
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  {index === 0 ? item.label : item.shortLabel}
+                </a>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -542,7 +636,7 @@ export default function Home() {
             <Terminal className="w-4 h-4 text-amber" />
             <span>Termio</span>
           </div>
-          <span>Built with love for developers</span>
+          <span>Built with ❤️ for developers</span>
         </div>
       </footer>
     </div>
