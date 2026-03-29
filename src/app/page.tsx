@@ -20,6 +20,8 @@ import {
   CloudOff,
   UserX,
   FileText,
+  Bug,
+  Github,
   GitFork,
   Send,
   Check,
@@ -201,13 +203,23 @@ export default function Home() {
             <Terminal className="w-5 h-5 text-amber" />
             <span className="font-semibold tracking-tight">Termio</span>
           </div>
-          <a
-            href={primaryDownload.href}
-            className={cn(buttonVariants({ size: "sm" }))}
-          >
-            <Download className="w-4 h-4" />
-            {primaryDownload.label}
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href="https://github.com/termio-dev/termio"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Github className="w-5 h-5" />
+            </a>
+            <a
+              href={primaryDownload.href}
+              className={cn(buttonVariants({ size: "sm" }))}
+            >
+              <Download className="w-4 h-4" />
+              {primaryDownload.label}
+            </a>
+          </div>
         </div>
       </nav>
 
@@ -631,12 +643,21 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-border py-8 px-6">
-        <div className="max-w-5xl mx-auto flex items-center justify-between text-sm text-muted-foreground">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Terminal className="w-4 h-4 text-amber" />
             <span>Termio</span>
           </div>
           <span>Built with ❤️ for developers</span>
+          <a
+            href="https://github.com/termio-dev/termio/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+          >
+            <Bug className="w-4 h-4" />
+            <span>Found an issue?</span>
+          </a>
         </div>
       </footer>
     </div>
