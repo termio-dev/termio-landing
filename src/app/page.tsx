@@ -153,8 +153,7 @@ function AppScreenshot() {
       <img
         src={`${basePath}/app_screenshot.png`}
         alt="Termio app screenshot"
-        className="w-full block"
-        style={{ minHeight: 400, objectFit: "cover", background: "#111111" }}
+        className="block h-auto w-full bg-[#111111]"
       />
     </div>
   );
