@@ -1,0 +1,9 @@
+{
+  "name": "Termio",
+  "short_name": "Termio",
+  "description": "Desktop terminal app and SSH client",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e0e0e",
+  "theme_color": "#e8a838"
+}

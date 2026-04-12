@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 import {
   Apple,
@@ -21,20 +21,24 @@ import {
   UserX,
   FileText,
   Bug,
-  Github,
   GitFork,
   Send,
   Check,
   X,
   Minus,
   Quote,
+  Boxes,
+  Command,
+  Cpu,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://termio.dev";
 type DownloadPlatform = "mac" | "windows" | "linux";
 
 const downloadLinks = {
@@ -88,6 +92,64 @@ function detectPlatform(): DownloadPlatform {
   return "mac";
 }
 
+function parsePlatformOverride(platform: string | null): DownloadPlatform | null {
+  if (platform === "windows" || platform === "mac" || platform === "linux") {
+    return platform;
+  }
+
+  return null;
+}
+
+function getPlatformOverride(): DownloadPlatform | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return parsePlatformOverride(
+    new URLSearchParams(window.location.search).get("platform"),
+  );
+}
+
+function getResolvedPlatform(): DownloadPlatform {
+  return getPlatformOverride() ?? detectPlatform();
+}
+
+function subscribeToPlatform(callback: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const historyWindow = window as Window & {
+    __termioLocationPatched?: boolean;
+  };
+
+  if (!historyWindow.__termioLocationPatched) {
+    const { pushState, replaceState } = window.history;
+
+    window.history.pushState = function (...args) {
+      const result = pushState.apply(this, args);
+      window.dispatchEvent(new Event("termio-locationchange"));
+      return result;
+    };
+
+    window.history.replaceState = function (...args) {
+      const result = replaceState.apply(this, args);
+      window.dispatchEvent(new Event("termio-locationchange"));
+      return result;
+    };
+
+    historyWindow.__termioLocationPatched = true;
+  }
+
+  window.addEventListener("popstate", callback);
+  window.addEventListener("termio-locationchange", callback);
+
+  return () => {
+    window.removeEventListener("popstate", callback);
+    window.removeEventListener("termio-locationchange", callback);
+  };
+}
+
 function getOrderedDownloads(platform: DownloadPlatform) {
   const preferred = downloads.find((item) => item.platform === platform);
   const fallback = downloads.filter((item) => item.platform !== platform);
@@ -134,6 +196,101 @@ const features = [
   },
 ];
 
+const faqItems = [
+  {
+    q: "Is Termio free?",
+    a: "Yes. Termio is completely free to use with no feature gates, usage limits, or premium tiers.",
+  },
+  {
+    q: "Where is my data stored?",
+    a: "Everything is stored locally on your machine in ~/.termio. Connections, files, and settings never leave your computer.",
+  },
+  {
+    q: "How do I share connections with my team?",
+    a: "Workspaces are plain text files. Commit them to a Git repo, share via any VCS, or simply copy the files. No proprietary sync needed.",
+  },
+  {
+    q: "Are my credentials secure?",
+    a: "Credentials are stored in your native OS credential store, such as Apple Keychain, Secret Service on Linux, or Windows Credential Manager. They never leave your machine.",
+  },
+  {
+    q: "Does the AI copilot send data externally?",
+    a: "The AI copilot connects to the API provider you configure (e.g. OpenAI). Terminal context is sent only when you explicitly interact with the copilot. No data is sent otherwise.",
+  },
+  {
+    q: "What platforms are supported?",
+    a: "Termio is available on macOS, Windows, and Linux.",
+  },
+  {
+    q: "How is Termio different from Termius?",
+    a: "Termius is cloud-based and requires an account with a paid subscription. Termio is local-only, free, and lets you share via Git instead of proprietary sync.",
+  },
+  {
+    q: "Can I use my own AI model?",
+    a: "Yes. Termio works with any OpenAI-compatible API. Point it to your own endpoint, a local model, or any compatible provider.",
+  },
+] as const;
+
+const platformHighlights: Record<
+  DownloadPlatform,
+  {
+    eyebrow: string;
+    title: string;
+    description: string;
+    feature: {
+      icon: typeof Terminal;
+      title: string;
+      points: string[];
+    };
+  }
+> = {
+  windows: {
+    eyebrow: "Windows-native workflows",
+    title: "Built for modern Windows terminals.",
+    description:
+      "Run WSL and PowerShell in the same workspace. Termio makes Windows a first-class environment for mixed shell workflows.",
+    feature: {
+      icon: Boxes,
+      title: "Windows Subsystem for Linux",
+      points: [
+        "Launch and organize WSL distributions alongside SSH and local sessions",
+        "Keep Linux-based tooling and native PowerShell workflows in the same workspace",
+        "Move between Windows apps, PowerShell, and Linux shells without switching terminals",
+      ],
+    },
+  },
+  mac: {
+    eyebrow: "macOS-native workflows",
+    title: "Feels at home on macOS.",
+    description:
+      "Keep credentials in Apple Keychain. Secrets stay on your Mac, not in the cloud.",
+    feature: {
+      icon: Command,
+      title: "Apple Keychain Storage",
+      points: [
+        "Store credentials securely in the native macOS Keychain",
+        "Keep secrets on your machine instead of syncing them through a cloud account",
+        "Fit into the standard macOS security model without extra setup",
+      ],
+    },
+  },
+  linux: {
+    eyebrow: "Linux-native workflows",
+    title: "Made for Linux operators and builders.",
+    description:
+      "Store credentials in your system keyring through Secret Service. Local-first security, no cloud sync.",
+    feature: {
+      icon: Cpu,
+      title: "System Keyring Storage",
+      points: [
+        "Store credentials securely through Secret Service on the local machine",
+        "Keep secrets out of cloud services and third-party sync layers",
+        "Stay aligned with native Linux desktop security practices",
+      ],
+    },
+  },
+};
+
 function AppScreenshot() {
   return (
     <div className="rounded-lg border border-border bg-[#111111] overflow-hidden shadow-2xl">
@@ -152,7 +309,7 @@ function AppScreenshot() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={`${basePath}/app_screenshot.png`}
-        alt="Termio app screenshot"
+        alt="Termio desktop terminal and SSH manager showing organized workspaces and split panes"
         className="block h-auto w-full bg-[#111111]"
       />
     </div>
@@ -179,48 +336,68 @@ function ComparisonCell({
   return <X className="w-4 h-4 mx-auto text-muted-foreground/30" />;
 }
 
+const siteRoot = `${siteUrl}${basePath}`;
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Termio",
+    applicationCategory: "DeveloperApplication",
+    operatingSystem: "macOS, Windows, Linux",
+    description:
+      "Desktop terminal app and SSH client with split-pane workspaces, WSL support, native OS credential storage, per-connection files, and AI copilot.",
+    url: `${siteRoot}/`,
+    downloadUrl: downloadLinks.windows,
+    image: `${siteRoot}/app_screenshot.png`,
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Termio",
+    url: `${siteRoot}/`,
+    logo: `${siteRoot}/app_screenshot.png`,
+  },
+];
+
 export default function Home() {
-  const [preferredPlatform, setPreferredPlatform] =
-    useState<DownloadPlatform>("mac");
+  const preferredPlatform = useSyncExternalStore<DownloadPlatform>(
+    subscribeToPlatform,
+    getResolvedPlatform,
+    () => "mac",
+  );
   const orderedDownloads = getOrderedDownloads(preferredPlatform);
   const primaryDownload = orderedDownloads[0];
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setPreferredPlatform(detectPlatform());
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, []);
+  const platformHighlight = platformHighlights[preferredPlatform];
 
   return (
     <div className="min-h-screen">
-      {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Terminal className="w-5 h-5 text-amber" />
-            <span className="font-semibold tracking-tight">Termio</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <a
-              href="https://github.com/termio-dev/termio"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Github className="w-5 h-5" />
-            </a>
-            <a
-              href={primaryDownload.href}
-              className={cn(buttonVariants({ size: "sm" }))}
-            >
-              <Download className="w-4 h-4" />
-              {primaryDownload.label}
-            </a>
-          </div>
-        </div>
-      </nav>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <SiteHeader
+        active="home"
+        ctaHref={primaryDownload.href}
+        ctaLabel={primaryDownload.label}
+        ctaIcon={Download}
+      />
 
       {/* Hero */}
       <section className="pt-32 pb-20 px-6">
@@ -267,6 +444,55 @@ export default function Home() {
           <AppScreenshot />
         </div>
       </section>
+
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-[radial-gradient(circle_at_top_left,rgba(232,168,56,0.16),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(74,222,128,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-8 sm:p-10">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber/70 to-transparent" />
+            <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+              <div className="max-w-md">
+                <Badge
+                  variant="outline"
+                  className="mb-4 border-amber/30 bg-background/30 text-amber"
+                >
+                  {platformHighlight.eyebrow}
+                </Badge>
+                <h2 className="text-3xl font-bold tracking-tight mb-3">
+                  {platformHighlight.title}
+                </h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  {platformHighlight.description}
+                </p>
+              </div>
+              <div className="max-w-lg">
+                <div className="rounded-2xl border border-amber/25 bg-background/55 p-6 backdrop-blur-sm shadow-[0_24px_80px_-48px_rgba(232,168,56,0.6)]">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber/30 bg-amber/10">
+                      <platformHighlight.feature.icon className="w-5 h-5 text-amber" />
+                    </div>
+                    <h3 className="font-semibold leading-tight">
+                      {platformHighlight.feature.title}
+                    </h3>
+                  </div>
+                  <ul className="space-y-3">
+                    {platformHighlight.feature.points.map((point) => (
+                      <li
+                        key={point}
+                        className="flex items-start gap-2.5 text-sm text-muted-foreground"
+                      >
+                        <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Separator className="max-w-5xl mx-auto" />
 
       {/* Privacy & Collaboration */}
       <section className="py-20 px-6">
@@ -503,40 +729,7 @@ export default function Home() {
             Common questions about Termio.
           </p>
           <div className="grid sm:grid-cols-2 gap-x-14 gap-y-10">
-            {[
-              {
-                q: "Is Termio free?",
-                a: "Yes. Termio is completely free to use with no feature gates, usage limits, or premium tiers.",
-              },
-              {
-                q: "Where is my data stored?",
-                a: "Everything is stored locally on your machine in ~/.termio. Connections, credentials, files, and settings never leave your computer.",
-              },
-              {
-                q: "How do I share connections with my team?",
-                a: "Workspaces are plain text files. Commit them to a Git repo, share via any VCS, or simply copy the files. No proprietary sync needed.",
-              },
-              {
-                q: "Are my credentials secure?",
-                a: "Credentials are obfuscated on disk to prevent casual exposure. They never leave your machine — there is no cloud, no sync, and no third-party access.",
-              },
-              {
-                q: "Does the AI copilot send data externally?",
-                a: "The AI copilot connects to the API provider you configure (e.g. OpenAI). Terminal context is sent only when you explicitly interact with the copilot. No data is sent otherwise.",
-              },
-              {
-                q: "What platforms are supported?",
-                a: "Termio is available on macOS, Windows, and Linux.",
-              },
-              {
-                q: "How is Termio different from Termius?",
-                a: "Termius is cloud-based and requires an account with a paid subscription. Termio is local-only, free, and lets you share via Git instead of proprietary sync.",
-              },
-              {
-                q: "Can I use my own AI model?",
-                a: "Yes. Termio works with any OpenAI-compatible API. Point it to your own endpoint, a local model, or any compatible provider.",
-              },
-            ].map((item) => (
+            {faqItems.map((item) => (
               <div key={item.q}>
                 <h3 className="font-semibold mb-2">{item.q}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">

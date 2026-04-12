@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
+const basePath = process.env.BASE_PATH ?? "";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://termio.dev";
+const metadataBase = new URL(siteUrl);
+const canonicalPath = basePath || "/";
+const ogImage = `${basePath || ""}/app_screenshot.png`;
+
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -13,18 +19,58 @@ const sansFont = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Termio — Terminal & Connection Manager",
+  metadataBase,
+  title: "Termio: Terminal App, SSH Client, and Connection Manager",
   description:
-    "Desktop terminal and SSH connection manager with split-pane workspaces, per-connection files, AI copilot, and a unified theme system. Built with Tauri and Rust.",
+    "Desktop terminal app and SSH client for macOS, Windows, and Linux with split panes, WSL support, Keychain and keyring credential storage, per-connection files, and AI copilot.",
   keywords: [
     "terminal",
     "SSH",
+    "SSH client",
     "connection manager",
     "split pane",
+    "WSL terminal",
+    "macOS terminal",
+    "Windows terminal",
+    "Linux terminal",
     "Tauri",
     "Rust",
     "desktop app",
   ],
+  alternates: {
+    canonical: canonicalPath,
+    types: {
+      "application/rss+xml": `${basePath}/feed.xml`,
+    },
+  },
+  manifest: `${basePath}/site.webmanifest`,
+  openGraph: {
+    title: "Termio: Terminal App, SSH Client, and Connection Manager",
+    description:
+      "Desktop terminal app and SSH client for macOS, Windows, and Linux with split panes, WSL support, Keychain and keyring credential storage, per-connection files, and AI copilot.",
+    url: canonicalPath,
+    siteName: "Termio",
+    type: "website",
+    images: [
+      {
+        url: ogImage,
+        width: 1600,
+        height: 900,
+        alt: "Termio terminal and connection manager screenshot",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Termio: Terminal App, SSH Client, and Connection Manager",
+    description:
+      "Desktop terminal app and SSH client for macOS, Windows, and Linux with split panes, WSL support, Keychain and keyring credential storage, per-connection files, and AI copilot.",
+    images: [ogImage],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
