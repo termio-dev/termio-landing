@@ -35,6 +35,7 @@ export function SiteHeader({
             >
               Home
             </Link>
+            {" "}
             <Link
               href="/blog/"
               className={cn(

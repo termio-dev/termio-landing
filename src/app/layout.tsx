@@ -9,12 +9,7 @@ const canonicalPath = basePath || "/";
 const ogImage = `${basePath || ""}/app_screenshot.png`;
 
 const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const sansFont = JetBrains_Mono({
-  variable: "--font-sans",
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -22,7 +17,7 @@ export const metadata: Metadata = {
   metadataBase,
   title: "Termio: Terminal App, SSH Client, and Connection Manager",
   description:
-    "Desktop terminal app and SSH client for macOS, Windows, and Linux with split panes, WSL support, Keychain and keyring credential storage, per-connection files, and AI copilot.",
+    "Free local-first terminal app and SSH client for macOS, Windows, and Linux. Split panes, WSL, Apple Keychain & keyring storage, AI copilot.",
   keywords: [
     "terminal",
     "SSH",
@@ -47,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Termio: Terminal App, SSH Client, and Connection Manager",
     description:
-      "Desktop terminal app and SSH client for macOS, Windows, and Linux with split panes, WSL support, Keychain and keyring credential storage, per-connection files, and AI copilot.",
+      "Free local-first terminal app and SSH client for macOS, Windows, and Linux. Split panes, WSL, Apple Keychain & keyring storage, AI copilot.",
     url: canonicalPath,
     siteName: "Termio",
     type: "website",
@@ -64,7 +59,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Termio: Terminal App, SSH Client, and Connection Manager",
     description:
-      "Desktop terminal app and SSH client for macOS, Windows, and Linux with split panes, WSL support, Keychain and keyring credential storage, per-connection files, and AI copilot.",
+      "Free local-first terminal app and SSH client for macOS, Windows, and Linux. Split panes, WSL, Apple Keychain & keyring storage, AI copilot.",
     images: [ogImage],
   },
   robots: {
@@ -79,10 +74,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${sansFont.variable} ${jetbrainsMono.variable} dark`}
-    >
+    <html lang="en" className={`${jetbrainsMono.variable} dark`}>
       <body className="min-h-screen bg-background text-foreground antialiased">
         {children}
       </body>

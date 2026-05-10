@@ -107,11 +107,12 @@ export default async function TagPage({ params }: Props) {
               className="rounded-3xl border border-border bg-card/50 p-6"
             >
               <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5">
+                <div className="inline-flex items-center gap-1.5">
                   <CalendarDays className="h-4 w-4" />
                   <time dateTime={post.date}>{post.date}</time>
-                </span>
-                <span>{post.author}</span>
+                </div>
+                {" "}
+                <div>{post.author}</div>
               </div>
               <h2 className="mb-3 text-2xl font-semibold tracking-tight">
                 <Link
@@ -126,7 +127,11 @@ export default async function TagPage({ params }: Props) {
               </p>
               <div className="mb-6 flex flex-wrap gap-2">
                 {post.tags.map((t) => (
-                  <Link key={t} href={`/blog/tag/${slugifyTag(t)}/`}>
+                  <Link
+                    key={t}
+                    href={`/blog/tag/${slugifyTag(t)}/`}
+                    prefetch={false}
+                  >
                     <Badge
                       variant="outline"
                       className="border-border/70 transition-colors hover:border-amber/30"

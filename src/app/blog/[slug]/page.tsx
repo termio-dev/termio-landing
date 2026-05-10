@@ -111,7 +111,11 @@ export default async function BlogPostPage({ params }: Props) {
         <header className="mb-10 border-b border-border pb-8">
           <div className="mb-4 flex flex-wrap gap-2">
             {post.tags.map((tag) => (
-              <Link key={tag} href={`/blog/tag/${slugifyTag(tag)}/`}>
+              <Link
+                key={tag}
+                href={`/blog/tag/${slugifyTag(tag)}/`}
+                prefetch={false}
+              >
                 <Badge
                   variant="outline"
                   className="border-border/70 transition-colors hover:border-amber/30"
@@ -128,11 +132,12 @@ export default async function BlogPostPage({ params }: Props) {
             {post.description}
           </p>
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5">
+            <div className="inline-flex items-center gap-1.5">
               <CalendarDays className="h-4 w-4" />
               <time dateTime={post.date}>{post.date}</time>
-            </span>
-            <span>{post.author}</span>
+            </div>
+            {" "}
+            <div>{post.author}</div>
           </div>
         </header>
 

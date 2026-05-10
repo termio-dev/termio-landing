@@ -1,161 +1,39 @@
-"use client";
-
-import { useSyncExternalStore } from "react";
-
+import Link from "next/link";
 import {
-  Apple,
-  AppWindow,
-  Terminal,
-  LayoutGrid,
-  Code,
-  Sparkles,
-  SquareTerminal,
-  GripVertical,
-  Upload,
-  Download,
-  Monitor,
-  ShieldCheck,
-  GitBranch,
-  HardDrive,
-  CloudOff,
-  UserX,
-  FileText,
-  Bug,
-  GitFork,
-  Send,
-  Check,
-  X,
-  Minus,
-  Quote,
   Boxes,
+  Bug,
+  Check,
+  CloudOff,
+  Code,
   Command,
   Cpu,
+  FileText,
+  GitBranch,
+  GitFork,
+  GripVertical,
+  HardDrive,
+  LayoutGrid,
+  Minus,
+  Monitor,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  SquareTerminal,
+  Terminal,
+  Upload,
+  UserX,
+  X,
 } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
+import { DownloadButtons } from "@/components/DownloadButtons";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
-
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://termio.dev";
-type DownloadPlatform = "mac" | "windows" | "linux";
-
-const downloadLinks = {
-  mac: "https://github.com/termio-dev/termio/releases/latest/download/Termio-macos-universal.dmg",
-  windows:
-    "https://github.com/termio-dev/termio/releases/latest/download/Termio-windows-x64-setup.exe",
-  linux:
-    "https://github.com/termio-dev/termio/releases/latest/download/Termio-linux-x86_64.AppImage",
-};
-
-const downloads = [
-  {
-    platform: "mac" as DownloadPlatform,
-    label: "Download for Mac",
-    shortLabel: "macOS",
-    href: downloadLinks.mac,
-    icon: Apple,
-  },
-  {
-    platform: "windows" as DownloadPlatform,
-    label: "Download for Windows",
-    shortLabel: "Windows",
-    href: downloadLinks.windows,
-    icon: AppWindow,
-  },
-  {
-    platform: "linux" as DownloadPlatform,
-    label: "Download for Linux",
-    shortLabel: "Linux",
-    href: downloadLinks.linux,
-    icon: Terminal,
-  },
-];
-
-function detectPlatform(): DownloadPlatform {
-  if (typeof navigator === "undefined") {
-    return "mac";
-  }
-
-  const platform = navigator.platform.toLowerCase();
-  const userAgent = navigator.userAgent.toLowerCase();
-
-  if (platform.includes("win") || userAgent.includes("windows")) {
-    return "windows";
-  }
-
-  if (platform.includes("linux") || userAgent.includes("linux")) {
-    return "linux";
-  }
-
-  return "mac";
-}
-
-function parsePlatformOverride(platform: string | null): DownloadPlatform | null {
-  if (platform === "windows" || platform === "mac" || platform === "linux") {
-    return platform;
-  }
-
-  return null;
-}
-
-function getPlatformOverride(): DownloadPlatform | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  return parsePlatformOverride(
-    new URLSearchParams(window.location.search).get("platform"),
-  );
-}
-
-function getResolvedPlatform(): DownloadPlatform {
-  return getPlatformOverride() ?? detectPlatform();
-}
-
-function subscribeToPlatform(callback: () => void) {
-  if (typeof window === "undefined") {
-    return () => {};
-  }
-
-  const historyWindow = window as Window & {
-    __termioLocationPatched?: boolean;
-  };
-
-  if (!historyWindow.__termioLocationPatched) {
-    const { pushState, replaceState } = window.history;
-
-    window.history.pushState = function (...args) {
-      const result = pushState.apply(this, args);
-      window.dispatchEvent(new Event("termio-locationchange"));
-      return result;
-    };
-
-    window.history.replaceState = function (...args) {
-      const result = replaceState.apply(this, args);
-      window.dispatchEvent(new Event("termio-locationchange"));
-      return result;
-    };
-
-    historyWindow.__termioLocationPatched = true;
-  }
-
-  window.addEventListener("popstate", callback);
-  window.addEventListener("termio-locationchange", callback);
-
-  return () => {
-    window.removeEventListener("popstate", callback);
-    window.removeEventListener("termio-locationchange", callback);
-  };
-}
-
-function getOrderedDownloads(platform: DownloadPlatform) {
-  const preferred = downloads.find((item) => item.platform === platform);
-  const fallback = downloads.filter((item) => item.platform !== platform);
-
-  return preferred ? [preferred, ...fallback] : downloads;
-}
+import {
+  basePath,
+  downloadLinks,
+  siteUrl,
+} from "@/lib/constants";
 
 const features = [
   {
@@ -231,110 +109,86 @@ const faqItems = [
   },
 ] as const;
 
-const platformHighlights: Record<
-  DownloadPlatform,
+const platformHighlights = [
   {
-    eyebrow: string;
-    title: string;
-    description: string;
-    feature: {
-      icon: typeof Terminal;
-      title: string;
-      points: string[];
-    };
-  }
-> = {
-  windows: {
-    eyebrow: "Windows-native workflows",
-    title: "Built for modern Windows terminals.",
-    description:
-      "Run WSL and PowerShell in the same workspace. Termio makes Windows a first-class environment for mixed shell workflows.",
-    feature: {
-      icon: Boxes,
-      title: "Windows Subsystem for Linux",
-      points: [
-        "Launch and organize WSL distributions alongside SSH and local sessions",
-        "Keep Linux-based tooling and native PowerShell workflows in the same workspace",
-        "Move between Windows apps, PowerShell, and Linux shells without switching terminals",
-      ],
-    },
-  },
-  mac: {
+    id: "mac",
     eyebrow: "macOS-native workflows",
     title: "Feels at home on macOS.",
     description:
       "Keep credentials in Apple Keychain. Secrets stay on your Mac, not in the cloud.",
-    feature: {
-      icon: Command,
-      title: "Apple Keychain Storage",
-      points: [
-        "Store credentials securely in the native macOS Keychain",
-        "Keep secrets on your machine instead of syncing them through a cloud account",
-        "Fit into the standard macOS security model without extra setup",
-      ],
-    },
+    icon: Command,
+    featureTitle: "Apple Keychain Storage",
+    points: [
+      "Store credentials securely in the native macOS Keychain",
+      "Keep secrets on your machine instead of syncing them through a cloud account",
+      "Fit into the standard macOS security model without extra setup",
+    ],
+    cta: { href: "/ssh-client-for-mac/", label: "SSH client for Mac" },
   },
-  linux: {
+  {
+    id: "windows",
+    eyebrow: "Windows-native workflows",
+    title: "Built for modern Windows terminals.",
+    description:
+      "Run WSL and PowerShell in the same workspace. Termio makes Windows a first-class environment for mixed shell workflows.",
+    icon: Boxes,
+    featureTitle: "Windows Subsystem for Linux",
+    points: [
+      "Launch and organize WSL distributions alongside SSH and local sessions",
+      "Keep Linux-based tooling and native PowerShell workflows in the same workspace",
+      "Move between Windows apps, PowerShell, and Linux shells without switching terminals",
+    ],
+    cta: { href: "/ssh-client-for-windows/", label: "SSH client for Windows" },
+  },
+  {
+    id: "linux",
     eyebrow: "Linux-native workflows",
     title: "Made for Linux operators and builders.",
     description:
       "Store credentials in your system keyring through Secret Service. Local-first security, no cloud sync.",
-    feature: {
-      icon: Cpu,
-      title: "System Keyring Storage",
-      points: [
-        "Store credentials securely through Secret Service on the local machine",
-        "Keep secrets out of cloud services and third-party sync layers",
-        "Stay aligned with native Linux desktop security practices",
-      ],
-    },
+    icon: Cpu,
+    featureTitle: "System Keyring Storage",
+    points: [
+      "Store credentials securely through Secret Service on the local machine",
+      "Keep secrets out of cloud services and third-party sync layers",
+      "Stay aligned with native Linux desktop security practices",
+    ],
+    cta: { href: "/ssh-client-for-linux/", label: "SSH client for Linux" },
   },
+] as const;
+
+const exploreLinks = {
+  byPlatform: [
+    { href: "/ssh-client-for-mac/", label: "SSH client for Mac" },
+    { href: "/ssh-client-for-windows/", label: "SSH client for Windows" },
+    { href: "/ssh-client-for-linux/", label: "SSH client for Linux" },
+    { href: "/wsl-terminal/", label: "WSL terminal for Windows" },
+  ],
+  byFeature: [
+    { href: "/ssh-connection-manager/", label: "SSH connection manager" },
+    { href: "/terminal-with-split-panes/", label: "Terminal with split panes" },
+  ],
+  vsAlternatives: [
+    { href: "/termio-vs-warp/", label: "Termio vs Warp" },
+    { href: "/termio-vs-termius/", label: "Termio vs Termius" },
+    { href: "/termio-vs-iterm2/", label: "Termio vs iTerm2" },
+  ],
+  guides: [
+    {
+      href: "/blog/best-ssh-client-for-developers-on-macos-windows-and-linux/",
+      label: "Best SSH client for developers",
+    },
+    {
+      href: "/blog/termius-alternative-for-local-first-teams/",
+      label: "Termius alternative for local-first teams",
+    },
+    {
+      href: "/blog/how-to-organize-ssh-servers-by-workspace/",
+      label: "How to organize SSH servers by workspace",
+    },
+    { href: "/blog/", label: "All articles" },
+  ],
 };
-
-function AppScreenshot() {
-  return (
-    <div className="rounded-lg border border-border bg-[#111111] overflow-hidden shadow-2xl">
-      {/* macOS title bar */}
-      <div className="flex items-center px-4 py-2.5 bg-[#141414] border-b border-border">
-        <div className="flex gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-[#f87171]" />
-          <div className="w-3 h-3 rounded-full bg-[#e8a838]" />
-          <div className="w-3 h-3 rounded-full bg-[#4ade80]" />
-        </div>
-        <div className="flex-1 text-center text-xs text-[#888888] -ml-12">
-          Termio
-        </div>
-      </div>
-      {/* Screenshot placeholder — replace src with your actual screenshot */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={`${basePath}/app_screenshot.png`}
-        alt="Termio desktop terminal and SSH manager showing organized workspaces and split panes"
-        className="block h-auto w-full bg-[#111111]"
-      />
-    </div>
-  );
-}
-
-function ComparisonCell({
-  value,
-  highlight,
-}: {
-  value: boolean | string;
-  highlight?: boolean;
-}) {
-  if (value === true) {
-    return (
-      <Check
-        className={`w-4 h-4 mx-auto ${highlight ? "text-[#4ade80]" : "text-[#4ade80]/60"}`}
-      />
-    );
-  }
-  if (value === "partial") {
-    return <Minus className="w-4 h-4 mx-auto text-muted-foreground" />;
-  }
-  return <X className="w-4 h-4 mx-auto text-muted-foreground/30" />;
-}
 
 const siteRoot = `${siteUrl}${basePath}`;
 const structuredData = [
@@ -372,32 +226,79 @@ const structuredData = [
     "@type": "Organization",
     name: "Termio",
     url: `${siteRoot}/`,
-    logo: `${siteRoot}/app_screenshot.png`,
+    sameAs: [
+      "https://github.com/termio-dev/termio",
+      "https://github.com/termio-dev",
+    ],
   },
 ];
 
-export default function Home() {
-  const preferredPlatform = useSyncExternalStore<DownloadPlatform>(
-    subscribeToPlatform,
-    getResolvedPlatform,
-    () => "mac",
-  );
-  const orderedDownloads = getOrderedDownloads(preferredPlatform);
-  const primaryDownload = orderedDownloads[0];
-  const platformHighlight = platformHighlights[preferredPlatform];
-
+function AppScreenshot() {
   return (
-    <div className="min-h-screen">
+    <div className="rounded-lg border border-border bg-[#111111] overflow-hidden shadow-2xl">
+      <div className="flex items-center px-4 py-2.5 bg-[#141414] border-b border-border">
+        <div className="flex gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#f87171]" />
+          <div className="w-3 h-3 rounded-full bg-[#e8a838]" />
+          <div className="w-3 h-3 rounded-full bg-[#4ade80]" />
+        </div>
+        <div className="flex-1 text-center text-xs text-[#888888] -ml-12">
+          Termio
+        </div>
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`${basePath}/app_screenshot.png`}
+        alt="Termio desktop terminal and SSH manager showing organized workspaces and split panes"
+        width={1600}
+        height={900}
+        fetchPriority="high"
+        decoding="async"
+        className="block h-auto w-full bg-[#111111]"
+      />
+    </div>
+  );
+}
+
+function ComparisonCell({
+  value,
+  highlight,
+}: {
+  value: boolean | string;
+  highlight?: boolean;
+}) {
+  if (value === true) {
+    return (
+      <Check
+        aria-label="Yes"
+        className={`w-4 h-4 mx-auto ${highlight ? "text-[#4ade80]" : "text-[#4ade80]/60"}`}
+      />
+    );
+  }
+  if (value === "partial") {
+    return (
+      <Minus
+        aria-label="Partial"
+        className="w-4 h-4 mx-auto text-muted-foreground"
+      />
+    );
+  }
+  return (
+    <X
+      aria-label="No"
+      className="w-4 h-4 mx-auto text-muted-foreground/30"
+    />
+  );
+}
+
+export default function Home() {
+  return (
+    <main className="min-h-screen">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <SiteHeader
-        active="home"
-        ctaHref={primaryDownload.href}
-        ctaLabel={primaryDownload.label}
-        ctaIcon={Download}
-      />
+      <SiteHeader active="home" />
 
       {/* Hero */}
       <section className="pt-32 pb-20 px-6">
@@ -414,30 +315,12 @@ export default function Home() {
               Your terminal, <span className="text-amber">organized.</span>
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
-              A desktop terminal and SSH manager with organized workspaces,
-              built-in AI copilot, and git-based collaboration. Fully local —
-              your data never leaves your machine.
+              A free, local-first desktop terminal and SSH client with
+              organized workspaces, built-in AI copilot, and Git-based
+              collaboration. Your data never leaves your machine.
             </p>
-            <div className="flex flex-wrap gap-3 mt-8">
-              {orderedDownloads.map((item, index) => {
-                const Icon = item.icon;
-
-                return (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className={cn(
-                      buttonVariants({
-                        size: "lg",
-                        variant: index === 0 ? "default" : "secondary",
-                      }),
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {index === 0 ? item.label : item.shortLabel}
-                  </a>
-                );
-              })}
+            <div className="mt-8">
+              <DownloadButtons />
             </div>
           </div>
 
@@ -445,49 +328,71 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Platform highlights — all three rendered statically */}
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-[radial-gradient(circle_at_top_left,rgba(232,168,56,0.16),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(74,222,128,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-8 sm:p-10">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber/70 to-transparent" />
-            <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-              <div className="max-w-md">
-                <Badge
-                  variant="outline"
-                  className="mb-4 border-amber/30 bg-background/30 text-amber"
+          <div className="mb-10 max-w-2xl">
+            <h2 className="text-3xl font-bold tracking-tight mb-3">
+              Built for your platform.
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Native security and shell integration on macOS, Windows, and
+              Linux. One terminal app for every environment your team works in.
+            </p>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            {platformHighlights.map((p) => {
+              const FeatureIcon = p.icon;
+              return (
+                <article
+                  key={p.id}
+                  className="rounded-2xl border border-amber/20 bg-gradient-to-b from-amber/5 to-transparent p-6"
                 >
-                  {platformHighlight.eyebrow}
-                </Badge>
-                <h2 className="text-3xl font-bold tracking-tight mb-3">
-                  {platformHighlight.title}
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  {platformHighlight.description}
-                </p>
-              </div>
-              <div className="max-w-lg">
-                <div className="rounded-2xl border border-amber/25 bg-background/55 p-6 backdrop-blur-sm shadow-[0_24px_80px_-48px_rgba(232,168,56,0.6)]">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber/30 bg-amber/10">
-                      <platformHighlight.feature.icon className="w-5 h-5 text-amber" />
+                  <Badge
+                    variant="outline"
+                    className="mb-4 border-amber/30 bg-background/30 text-amber"
+                  >
+                    {p.eyebrow}
+                  </Badge>
+                  <h3 className="mb-2 text-xl font-semibold tracking-tight">
+                    {p.title}
+                  </h3>
+                  <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
+                    {p.description}
+                  </p>
+
+                  <div className="rounded-xl border border-border bg-background/55 p-4 mb-5">
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-amber/30 bg-amber/10">
+                        <FeatureIcon className="h-4 w-4 text-amber" />
+                      </div>
+                      <h4 className="text-sm font-semibold leading-tight">
+                        {p.featureTitle}
+                      </h4>
                     </div>
-                    <h3 className="font-semibold leading-tight">
-                      {platformHighlight.feature.title}
-                    </h3>
+                    <ul className="space-y-2">
+                      {p.points.map((point) => (
+                        <li
+                          key={point}
+                          className="flex items-start gap-2 text-sm text-muted-foreground"
+                        >
+                          <div className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber" />
+                          <span>{point}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="space-y-3">
-                    {platformHighlight.feature.points.map((point) => (
-                      <li
-                        key={point}
-                        className="flex items-start gap-2.5 text-sm text-muted-foreground"
-                      >
-                        <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber" />
-                        <span>{point}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
+
+                  <Link
+                    href={p.cta.href}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-amber hover:text-foreground transition-colors"
+                  >
+                    {p.cta.label} →
+                  </Link>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -504,7 +409,6 @@ export default function Home() {
             No cloud. No accounts. Just files on your machine.
           </p>
           <div className="grid sm:grid-cols-2 gap-6">
-            {/* Local-Only */}
             <div className="relative rounded-lg border border-[#4ade80]/20 bg-gradient-to-b from-[#4ade80]/5 to-transparent p-6">
               <div className="flex items-center gap-2.5 mb-4">
                 <ShieldCheck className="w-5 h-5 text-green" />
@@ -537,7 +441,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Git-Based Collaboration */}
             <div className="relative rounded-lg border border-amber/20 bg-gradient-to-b from-amber/5 to-transparent p-6">
               <div className="flex items-center gap-2.5 mb-4">
                 <GitBranch className="w-5 h-5 text-amber" />
@@ -716,6 +619,114 @@ export default function Home() {
               </tbody>
             </table>
           </div>
+          <div className="mt-6 flex flex-wrap gap-4 text-sm">
+            <Link
+              href="/termio-vs-warp/"
+              className="text-amber hover:text-foreground transition-colors"
+            >
+              Full Termio vs Warp comparison →
+            </Link>
+            <Link
+              href="/termio-vs-termius/"
+              className="text-amber hover:text-foreground transition-colors"
+            >
+              Full Termio vs Termius comparison →
+            </Link>
+            <Link
+              href="/termio-vs-iterm2/"
+              className="text-amber hover:text-foreground transition-colors"
+            >
+              Full Termio vs iTerm2 comparison →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <Separator className="max-w-5xl mx-auto" />
+
+      {/* Explore — internal linking hub */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-2xl font-bold tracking-tight mb-2">
+            Explore Termio
+          </h2>
+          <p className="text-muted-foreground mb-10">
+            Dedicated guides for every platform, feature, and alternative.
+          </p>
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3">
+                By platform
+              </h3>
+              <ul className="space-y-2 text-sm">
+                {exploreLinks.byPlatform.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      prefetch={false}
+                      className="text-muted-foreground hover:text-amber transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3">
+                By feature
+              </h3>
+              <ul className="space-y-2 text-sm">
+                {exploreLinks.byFeature.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      prefetch={false}
+                      className="text-muted-foreground hover:text-amber transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3">
+                vs alternatives
+              </h3>
+              <ul className="space-y-2 text-sm">
+                {exploreLinks.vsAlternatives.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      prefetch={false}
+                      className="text-muted-foreground hover:text-amber transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3">
+                Guides
+              </h3>
+              <ul className="space-y-2 text-sm">
+                {exploreLinks.guides.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      prefetch={false}
+                      className="text-muted-foreground hover:text-amber transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -743,63 +754,6 @@ export default function Home() {
 
       <Separator className="max-w-5xl mx-auto" />
 
-      {/* Testimonials */}
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold tracking-tight mb-2">
-            What users say
-          </h2>
-          <p className="text-muted-foreground mb-10">
-            Feedback from developers using Termio.
-          </p>
-          <div className="grid sm:grid-cols-3 gap-5">
-            {[
-              {
-                quote:
-                  "Finally a terminal manager that doesn't want my data in the cloud. I switched from Termius and never looked back.",
-                name: "Alex K.",
-                role: "DevOps Engineer",
-              },
-              {
-                quote:
-                  "The command composer alone saves me 20 minutes a day. Writing multi-line scripts and staging them in one click is a game changer.",
-                name: "Maria S.",
-                role: "Backend Developer",
-              },
-              {
-                quote:
-                  "I manage 40+ servers and Termio's workspace organization keeps everything sane. Plus sharing configs via Git with my team just works.",
-                name: "James L.",
-                role: "SRE Lead",
-              },
-            ].map((t) => (
-              <div
-                key={t.name}
-                className="p-5 rounded-lg border border-border bg-card"
-              >
-                <Quote className="w-4 h-4 text-amber/30 mb-3" />
-                <p className="text-sm text-muted-foreground leading-relaxed mb-5">
-                  {t.quote}
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-amber/10 flex items-center justify-center text-xs font-semibold text-amber">
-                    {t.name[0]}
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold">{t.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {t.role}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <Separator className="max-w-5xl mx-auto" />
-
       {/* CTA */}
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto text-center">
@@ -809,26 +763,8 @@ export default function Home() {
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">
             Download for your platform and get started in seconds.
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {orderedDownloads.map((item, index) => {
-              const Icon = item.icon;
-
-              return (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className={cn(
-                    buttonVariants({
-                      size: "lg",
-                      variant: index === 0 ? "default" : "secondary",
-                    }),
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  {index === 0 ? item.label : item.shortLabel}
-                </a>
-              );
-            })}
+          <div className="flex justify-center">
+            <DownloadButtons align="center" />
           </div>
         </div>
       </section>
@@ -838,9 +774,11 @@ export default function Home() {
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Terminal className="w-4 h-4 text-amber" />
-            <span>Termio</span>
+            <div>Termio</div>
           </div>
-          <span>Built with ❤️ for developers</span>
+          {" "}
+          <div>Built with ❤️ for developers</div>
+          {" "}
           <a
             href="https://github.com/termio-dev/termio/issues"
             target="_blank"
@@ -848,10 +786,10 @@ export default function Home() {
             className="flex items-center gap-1.5 hover:text-foreground transition-colors"
           >
             <Bug className="w-4 h-4" />
-            <span>Found an issue?</span>
+            <div>Found an issue?</div>
           </a>
         </div>
       </footer>
-    </div>
+    </main>
   );
 }

@@ -244,6 +244,26 @@ export default function WslTerminalPage() {
         </div>
       </section>
 
+      <section className="px-6 py-16">
+        <div className="mx-auto max-w-5xl rounded-3xl border border-amber/20 bg-gradient-to-b from-amber/8 to-transparent p-7">
+          <h2 className="mb-3 text-2xl font-semibold tracking-tight">
+            Looking for a Windows SSH client?
+          </h2>
+          <p className="mb-4 max-w-3xl leading-7 text-muted-foreground">
+            Termio is also a free, local-first Windows SSH client with split
+            panes, an SSH connection manager, and Windows Credential Manager
+            integration. WSL distributions, PowerShell, and remote SSH sessions
+            live together in the same workspace.
+          </p>
+          <Link
+            href="/ssh-client-for-windows/"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-amber hover:text-foreground transition-colors"
+          >
+            See the Windows SSH client page →
+          </Link>
+        </div>
+      </section>
+
       <DownloadCtaSection
         platform="windows"
         headline="Download the WSL terminal"

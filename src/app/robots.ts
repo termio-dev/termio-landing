@@ -12,6 +12,5 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
     },
     sitemap: `${siteUrl}${basePath}/sitemap.xml`,
-    host: siteUrl,
   };
 }
