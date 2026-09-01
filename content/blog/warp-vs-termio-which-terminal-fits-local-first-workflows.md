@@ -77,3 +77,5 @@ The `Warp vs Termio` decision comes down to scope.
 If you need a polished shell interface, Warp may be enough.
 
 If you need a local-first terminal that also acts as a serious SSH and connection workflow tool, Termio is the stronger fit.
+
+For a longer, hands-on version of this comparison — where Warp's block model wins, where a connection manager starts to matter, and how to test both in a week — see [Warp vs Termio: is Warp worth it for SSH-heavy work?](/blog/is-warp-worth-it-for-ssh-heavy-work/)

@@ -28,7 +28,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { DownloadButtons } from "@/components/DownloadButtons";
 import { SiteHeader } from "@/components/SiteHeader";
+import { WhatsNewSection } from "@/components/WhatsNewSection";
 import { Separator } from "@/components/ui/separator";
+import { latestRelease } from "@/lib/changelog";
 import {
   basePath,
   downloadLinks,
@@ -203,6 +205,9 @@ const structuredData = [
     url: `${siteRoot}/`,
     downloadUrl: downloadLinks.windows,
     image: `${siteRoot}/app_screenshot.png`,
+    softwareVersion: latestRelease.version,
+    datePublished: latestRelease.date,
+    releaseNotes: `${siteRoot}/#whats-new`,
     offers: {
       "@type": "Offer",
       price: "0",
@@ -294,6 +299,12 @@ function ComparisonCell({
 export default function Home() {
   return (
     <main className="min-h-screen">
+      <link
+        rel="preload"
+        as="image"
+        href={`${basePath}/app_screenshot.png`}
+        fetchPriority="high"
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -641,6 +652,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <Separator className="max-w-5xl mx-auto" />
+
+      {/* What's new — latest release notes */}
+      <WhatsNewSection />
 
       <Separator className="max-w-5xl mx-auto" />
 

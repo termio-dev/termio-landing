@@ -33,16 +33,16 @@ export const metadata: Metadata = {
 
 const relatedArticles = [
   {
+    href: "/blog/switching-from-termius-to-termio/",
+    title: "Switching From Termius to Termio: What Actually Changes",
+  },
+  {
     href: "/blog/termius-alternative-for-local-first-teams/",
     title: "Termius Alternative for Local-First Teams",
   },
   {
     href: "/blog/how-to-share-terminal-and-ssh-setups-with-git/",
     title: "How to Share Terminal and SSH Setups with Git",
-  },
-  {
-    href: "/blog/how-to-organize-ssh-servers-by-workspace/",
-    title: "How to Organize SSH Servers by Workspace",
   },
 ];
 

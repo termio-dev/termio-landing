@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  Download,
   GitBranch,
   Monitor,
   Package,
@@ -11,6 +10,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { DownloadCtaSection } from "@/components/DownloadCtaSection";
+import { LinuxDownloadMenu } from "@/components/LinuxDownloadMenu";
 import { RelatedArticles } from "@/components/RelatedArticles";
 import { SiteHeader } from "@/components/SiteHeader";
 import {
@@ -118,10 +118,10 @@ export default function SshClientForLinuxPage() {
               Distributed as an AppImage that works across distributions.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href={downloadLinks.linux} className={primaryButtonClass}>
-                <Download className="h-4 w-4" />
-                Download for Linux
-              </a>
+              <LinuxDownloadMenu
+                label="Download for Linux"
+                className={primaryButtonClass}
+              />
               <Link
                 href="/blog/how-to-store-ssh-credentials-securely-on-linux/"
                 className={secondaryButtonClass}

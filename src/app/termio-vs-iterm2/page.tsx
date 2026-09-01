@@ -33,16 +33,16 @@ export const metadata: Metadata = {
 
 const relatedArticles = [
   {
+    href: "/blog/iterm2-vs-termio-do-you-need-an-ssh-manager-on-macos/",
+    title: "iTerm2 vs Termio: Do You Still Need an SSH Manager on macOS?",
+  },
+  {
     href: "/blog/terminal-app-with-apple-keychain-support-for-macos/",
     title: "Terminal App with Apple Keychain Support for macOS",
   },
   {
     href: "/blog/best-ssh-client-for-developers-on-macos-windows-and-linux/",
     title: "Best SSH Client for Developers on macOS, Windows, and Linux",
-  },
-  {
-    href: "/blog/how-to-organize-ssh-servers-by-workspace/",
-    title: "How to Organize SSH Servers by Workspace",
   },
 ];
 

@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { Apple, AppWindow, Terminal } from "lucide-react";
 
+import { LinuxDownloadMenu } from "@/components/LinuxDownloadMenu";
 import { buttonVariants } from "@/components/ui/button";
 import { downloadLinks } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -140,6 +141,17 @@ export function DownloadButtons({
     >
       {ordered.map((item, index) => {
         const Icon = item.icon;
+
+        if (item.platform === "linux") {
+          return (
+            <LinuxDownloadMenu
+              key={item.platform}
+              label={index === 0 ? item.label : item.shortLabel}
+              size={size}
+              variant={index === 0 ? "default" : "secondary"}
+            />
+          );
+        }
 
         return (
           <a

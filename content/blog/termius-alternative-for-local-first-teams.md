@@ -86,3 +86,5 @@ You keep plain files, local credentials, and a setup that can be versioned like 
 The best **Termius alternative** is not just another SSH client. It is a tool that matches how your team already works.
 
 If your team prefers local control, native platform security, and plain files over proprietary sync, Termio gives you a more predictable foundation for terminal and SSH workflows.
+
+If you are weighing an actual move, [switching from Termius to Termio](/blog/switching-from-termius-to-termio/) covers what you gain, what you give up (mobile apps and background sync, honestly stated), and a step-by-step migration.

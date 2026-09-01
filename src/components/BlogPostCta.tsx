@@ -4,19 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Apple, AppWindow, ArrowRight, Download, Terminal } from "lucide-react";
 
+import { LinuxDownloadMenu } from "@/components/LinuxDownloadMenu";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { downloadLinks } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 type DownloadPlatform = "mac" | "windows" | "linux";
-
-const downloadLinks = {
-  mac: "https://github.com/termio-dev/termio/releases/latest/download/Termio-macos-universal.dmg",
-  windows:
-    "https://github.com/termio-dev/termio/releases/latest/download/Termio-windows-x64-setup.exe",
-  linux:
-    "https://github.com/termio-dev/termio/releases/latest/download/Termio-linux-x86_64.AppImage",
-};
 
 const downloads = [
   {
@@ -117,16 +111,31 @@ export function BlogPostCta() {
           </p>
 
           <div className="flex flex-wrap gap-3">
-            <a
-              href={primaryDownload.href}
-              className={cn(buttonVariants({ size: "lg" }))}
-            >
-              <PrimaryIcon className="h-4 w-4" />
-              {primaryDownload.label}
-              <Download className="h-4 w-4" />
-            </a>
+            {primaryDownload.platform === "linux" ? (
+              <LinuxDownloadMenu label={primaryDownload.label} size="lg" />
+            ) : (
+              <a
+                href={primaryDownload.href}
+                className={cn(buttonVariants({ size: "lg" }))}
+              >
+                <PrimaryIcon className="h-4 w-4" />
+                {primaryDownload.label}
+                <Download className="h-4 w-4" />
+              </a>
+            )}
             {secondaryDownloads.map((item) => {
               const Icon = item.icon;
+
+              if (item.platform === "linux") {
+                return (
+                  <LinuxDownloadMenu
+                    key={item.platform}
+                    label={item.shortLabel}
+                    size="lg"
+                    variant="secondary"
+                  />
+                );
+              }
 
               return (
                 <a

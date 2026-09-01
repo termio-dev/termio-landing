@@ -33,12 +33,12 @@ export const metadata: Metadata = {
 
 const relatedArticles = [
   {
-    href: "/blog/warp-vs-termio-which-terminal-fits-local-first-workflows/",
-    title: "Warp vs Termio: Which Terminal Fits Local-First Workflows?",
+    href: "/blog/is-warp-worth-it-for-ssh-heavy-work/",
+    title: "Warp vs Termio: Is Warp Worth It for SSH-Heavy Work?",
   },
   {
-    href: "/blog/local-first-developer-tools-why-keeping-terminal-data-on-your-machine-matters/",
-    title: "Why Keeping Terminal Data on Your Machine Matters",
+    href: "/blog/warp-vs-termio-which-terminal-fits-local-first-workflows/",
+    title: "Warp vs Termio: Which Terminal Fits Local-First Workflows?",
   },
   {
     href: "/blog/how-to-manage-ssh-connections-without-cloud-sync/",

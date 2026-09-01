@@ -9,10 +9,12 @@ function renderInline(content: string) {
     | { type: "text"; value: string }
     | { type: "code"; value: string }
     | { type: "strong"; value: string }
+    | { type: "em"; value: string }
     | { type: "link"; label: string; href: string }
   > = [];
 
-  const pattern = /(`[^`]+`)|(\*\*[^*]+\*\*)|(\[[^\]]+\]\([^)]+\))/g;
+  const pattern =
+    /(`[^`]+`)|(\*\*[^*]+\*\*)|(\*[^*\s][^*]*\*)|(\[[^\]]+\]\([^)]+\))/g;
   let lastIndex = 0;
 
   for (const match of content.matchAll(pattern)) {
@@ -28,6 +30,8 @@ function renderInline(content: string) {
       parts.push({ type: "code", value: value.slice(1, -1) });
     } else if (value.startsWith("**")) {
       parts.push({ type: "strong", value: value.slice(2, -2) });
+    } else if (value.startsWith("*")) {
+      parts.push({ type: "em", value: value.slice(1, -1) });
     } else {
       const [, label, href] = value.match(/^\[([^\]]+)\]\(([^)]+)\)$/) ?? [];
       parts.push({ type: "link", label, href });
@@ -54,6 +58,10 @@ function renderInline(content: string) {
 
     if (part.type === "strong") {
       return <strong key={index}>{part.value}</strong>;
+    }
+
+    if (part.type === "em") {
+      return <em key={index}>{part.value}</em>;
     }
 
     if (part.type === "link") {

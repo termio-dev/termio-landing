@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Download } from "lucide-react";
 
+import { LinuxDownloadMenu } from "@/components/LinuxDownloadMenu";
 import {
   downloadLinks,
   primaryButtonClass,
@@ -35,10 +36,17 @@ export function DownloadCtaSection({
           </h2>
           <p className="mb-8 leading-8 text-muted-foreground">{description}</p>
           <div className="flex flex-wrap gap-3">
-            <a href={downloadLinks[platform]} className={primaryButtonClass}>
-              <Download className="h-4 w-4" />
-              {platformLabels[platform]}
-            </a>
+            {platform === "linux" ? (
+              <LinuxDownloadMenu
+                label={platformLabels.linux}
+                className={primaryButtonClass}
+              />
+            ) : (
+              <a href={downloadLinks[platform]} className={primaryButtonClass}>
+                <Download className="h-4 w-4" />
+                {platformLabels[platform]}
+              </a>
+            )}
             {secondaryLink ? (
               <Link
                 href={secondaryLink.href}
